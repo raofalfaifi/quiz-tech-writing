@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technical Writing Quiz — اختبار الكتابة التقنية</title>
+<style>
+:root{
+  --bg:#f5f6fa; --card:#ffffff; --text:#1c1f26; --muted:#667085; --border:#dfe3ec;
+  --accent:#2f5dff; --accent-soft:#e8edff; --ok:#16a34a; --ok-bg:#e7f8ee; --bad:#dc2626; --bad-bg:#fdeaea;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#12141a; --card:#1b1e27; --text:#e8eaf0; --muted:#98a0b3; --border:#2c3140;
+    --accent:#6f8dff; --accent-soft:#232a44; --ok:#34d27b; --ok-bg:#12301f; --bad:#ff6b6b; --bad-bg:#3a1a1a;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Naskh Arabic","Noto Sans Arabic",Tahoma,sans-serif;
+  line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+h1{font-size:1.5rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 18px}
+.ar{direction:rtl;text-align:right}
+.top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.9rem;margin-bottom:8px}
+.bar{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:18px}
+.bar>div{height:100%;background:var(--accent);width:0;transition:width .25s}
+.q-en{font-size:1.15rem;font-weight:600;margin:0}
+.q-ar{font-size:1.1rem;margin:6px 0 18px;color:var(--muted);direction:rtl;text-align:right}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;
+  background:var(--card);color:var(--text);border:1.5px solid var(--border);border-radius:12px;
+  padding:12px 14px;font:inherit;cursor:pointer;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt .k{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.opt .t{flex:1;unicode-bidi:plaintext}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.correct .k{background:var(--ok);color:#fff}
+.opt.wrong .k{background:var(--bad);color:#fff}
+.exp{margin-top:16px;padding:14px 16px;border-radius:12px;background:var(--accent-soft);
+  border-inline-start:4px solid var(--accent);direction:rtl;text-align:right}
+.exp b{display:block;margin-bottom:2px}
+.verdict{font-weight:700;margin-top:14px}
+.verdict.ok{color:var(--ok)} .verdict.no{color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+button.btn{font:inherit;font-weight:600;border:0;border-radius:12px;padding:11px 20px;cursor:pointer;
+  background:var(--accent);color:#fff}
+button.btn.sec{background:transparent;color:var(--text);border:1.5px solid var(--border)}
+button.btn:disabled{opacity:.5;cursor:not-allowed}
+label.chk{display:flex;gap:8px;align-items:center;margin:8px 0;cursor:pointer}
+.score{font-size:3rem;font-weight:800;margin:6px 0;color:var(--accent)}
+.rev{border-top:1px solid var(--border);padding:14px 0}
+.rev .en{font-weight:600} .rev .a{color:var(--muted);direction:rtl;text-align:right}
+.rev .y{color:var(--bad)} .rev .c{color:var(--ok)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Start screen -->
+  <div id="start" class="card">
+    <h1>Technical Writing Quiz</h1>
+    <p class="sub ar">اختبار الكتابة التقنية — 100 سؤال مع شرح عربي بعد كل إجابة</p>
+    <label class="chk"><input type="checkbox" id="shQ"> Shuffle questions — ترتيب الأسئلة عشوائي</label>
+    <label class="chk"><input type="checkbox" id="shO"> Shuffle choices — ترتيب الخيارات عشوائي</label>
+    <label class="chk">
+      Part — الجزء:&nbsp;
+      <select id="part">
+        <option value="all">All 100 — كل الأسئلة</option>
+        <option value="1">Lecture 1 (1–25) — المحاضرة 1</option>
+        <option value="2">Lecture 2 (26–50) — المحاضرة 2</option>
+        <option value="3">Lecture 3 (51–75) — المحاضرة 3</option>
+        <option value="4">Extra (76–100) — أسئلة إضافية</option>
+      </select>
+    </label>
+    <div class="row"><button class="btn" id="startBtn">Start — ابدأ</button></div>
+  </div>
+
+  <!-- Quiz screen -->
+  <div id="quiz" class="card hide">
+    <div class="top"><span id="counter"></span><span id="scoreLive"></span></div>
+    <div class="bar"><div id="prog"></div></div>
+    <p class="q-en" id="qen"></p>
+    <p class="q-ar" id="qar"></p>
+    <div class="opts" id="opts"></div>
+    <div id="feedback"></div>
+    <div class="row"><button class="btn hide" id="nextBtn">Next — التالي</button></div>
+  </div>
+
+  <!-- Result screen -->
+  <div id="result" class="card hide">
+    <h1>Result — النتيجة</h1>
+    <div class="score" id="finalScore"></div>
+    <p class="sub" id="finalMsg"></p>
+    <div class="row">
+      <button class="btn" id="retryAll">Restart — إعادة الاختبار</button>
+      <button class="btn sec" id="retryWrong">Retry mistakes — إعادة الأخطاء فقط</button>
+    </div>
+    <h2 style="margin-top:26px;font-size:1.1rem">Mistakes review — مراجعة الأخطاء</h2>
+    <div id="review"></div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- Data ---------- */
+const M=(q,a,o,c,e)=>({q,a,o,c,e});
+const T=(q,a,v,e)=>({q,a,o:[`True — صح`,`False — خطأ`],c:v?0:1,e,tf:true});
+
+const QUESTIONS=[
+/* ===== Lecture 1 ===== */
+M(`Which of the following is NOT one of the four major categories of technical writing?`,
+  `أي مما يلي ليس من الفئات الرئيسية الأربع للكتابة التقنية؟`,
+  [`Reports and communications in day-to-day business — التقارير والاتصالات في الأعمال اليومية`,
+   `Patents — براءات الاختراع`,
+   `Operational manuals, instructions, or procedures — أدلة التشغيل أو التعليمات أو الإجراءات`,
+   `Novels and poetry — الروايات والشعر`],3,
+  `الفئات الأربع: تقارير الأعمال، الأوراق والكتب والرسائل العلمية، البراءات، الأدلة والإجراءات. الروايات والشعر ليست منها.`),
+T(`A technical report is mostly written by engineers.`,
+  `التقرير التقني يكتبه في الغالب مهندسون.`,true,`صح، حسب الشريحة.`),
+T(`The purpose of a technical report is to recommend, instruct, inform or persuade a reader about a specific practical matter.`,
+  `الغرض من التقرير التقني هو أن يوصي القارئ أو يوجّهه أو يُعلمه أو يقنعه بشأن أمر عملي محدد.`,true,
+  `صح: recommend / instruct / inform / persuade.`),
+M(`Which of the following is NOT one of the ten attributes of technical writing?`,
+  `أي مما يلي ليس من السمات العشر للكتابة التقنية؟`,
+  [`It is impersonal — غير شخصية`,
+   `It is archival — أرشيفية (تُحفظ للمستقبل)`,
+   `It is entertaining — ترفيهية`,
+   `It is concise — موجزة`],2,
+  `التقرير التقني لا يهدف للتسلية (not intended to entertain).`),
+M(`Which group of verbs is probably associated with factual statements?`,
+  `أي مجموعة من الأفعال ترتبط غالبًا بالعبارات الواقعية (الحقائق)؟`,
+  [`Think, suppose — يظن، يفترض`,
+   `Determined, completed, discovered — حُدِّد، اكتمل، اكتُشف`,
+   `May be, appear — ربما، يبدو`,
+   `Suggest, think — يقترح، يظن`],1,
+  `أفعال الحقائق: determined, solved, built, completed, discovered. أما think/suppose/appear/suggest فليست حقائق.`),
+T(`Words such as "suppose" and "think" are good for presenting facts in technical writing.`,
+  `كلمات مثل «suppose» و«think» مناسبة لعرض الحقائق في الكتابة التقنية.`,false,
+  `خطأ، هي أفعال غير مرتبطة بالحقائق.`),
+T(`The use of first person pronouns such as "I" is encouraged in technical writing.`,
+  `يُشجَّع استخدام ضمائر المتكلم مثل «I» في الكتابة التقنية.`,false,
+  `خطأ. الكتابة التقنية Impersonal (ضمير الغائب)، واستخدام «I» يضعف المصداقية.`),
+M(`In an industrial situation, the objective of any work is usually to:`,
+  `في الوضع الصناعي، يكون هدف أي عمل عادةً:`,
+  [`Entertain the reader — تسلية القارئ`,
+   `Make or increase profits — تحقيق الأرباح أو زيادتها`,
+   `Train new employees — تدريب الموظفين الجدد`,
+   `Avoid writing reports — تجنب كتابة التقارير`],1,
+  `Objective = السبب العام للعمل، وفي الصناعة غالبًا هو زيادة الأرباح.`),
+M(`"Reducing the failure rate to less than three ppm" in the latch example is the report's:`,
+  `«خفض نسبة الفشل إلى أقل من ثلاثة أجزاء في المليون» في مثال القفل هو ما يسمى في التقرير:`,
+  [`Purpose — الغرض`,
+   `Objective — الهدف`,
+   `Scope — النطاق`,
+   `Appendix — الملحق`],1,
+  `الغرض (purpose) = عرض نتائج الدراسة، والهدف (objective) = خفض نسبة الفشل لتوفير المال.`),
+M(`The appropriate style for technical writing is:`,
+  `الأسلوب المناسب للكتابة التقنية هو:`,
+  [`Emotional — عاطفي`,
+   `Opinionated — متحيز للرأي`,
+   `Objective — موضوعي`,
+   `Humorous — فكاهي`],2,
+  `الأسلوب موضوعي وغير متحيز (objective).`),
+T(`Style is the way that you write, while format is the ordering and physical layout of a document.`,
+  `الأسلوب هو طريقة كتابتك، أما التنسيق فهو ترتيب المستند وتخطيطه الشكلي.`,true,
+  `صح: Style = طريقة الكتابة، Format = الترتيب والتنسيق.`),
+M(`In a formal technical report, which element answers "what you did"?`,
+  `في التقرير التقني الرسمي، أي عنصر يجيب عن سؤال «ماذا فعلت؟»`,
+  [`Introduction — المقدمة`,
+   `Procedure — الإجراءات`,
+   `Results — النتائج`,
+   `Recommendations — التوصيات`],1,
+  `Introduction: why / Procedure: what you did / Results: what happened.`),
+T(`Technical documents should be generated on transient issues that will not be pertinent in the future.`,
+  `يجب إعداد المستندات التقنية حول قضايا عابرة لن تكون ذات صلة في المستقبل.`,false,
+  `خطأ. الكتابة التقنية Archival فلا تُكتب عن مواضيع عابرة.`),
+M(`Which of the following is NOT a type of technical study listed in Figure 2?`,
+  `أي مما يلي ليس من أنواع الدراسات التقنية المذكورة في الشكل 2؟`,
+  [`Solving problems — حل المشكلات`,
+   `Failure analysis — تحليل الفشل`,
+   `Feasibility study — دراسة الجدوى`,
+   `Writing a novel — كتابة رواية`],3,
+  `الأنواع: حل مشكلات، بحث آلية، تطوير شيء جديد، دراسة جدوى، تحليل فشل.`),
+T(`Solutions to technical problems should be data driven, not based on intuition, experience or opinion.`,
+  `يجب أن تعتمد حلول المشكلات التقنية على البيانات، لا على الحدس أو الخبرة أو الرأي.`,true,`صح.`),
+M(`Which type of technical study may be the toughest assignment?`,
+  `أي نوع من الدراسات التقنية قد يكون أصعب مهمة؟`,
+  [`Feasibility study — دراسة الجدوى`,
+   `Develop something new — تطوير شيء جديد`,
+   `Failure analysis — تحليل الفشل`,
+   `Research a mechanism — بحث آلية`],1,
+  `Develop something new: احتمال النجاح أقل، والإدارة تطلب عمليًا اختراعًا.`),
+M(`The purpose of a feasibility study is usually to:`,
+  `الغرض من دراسة الجدوى عادةً هو:`,
+  [`Build the product — بناء المنتج`,
+   `Gather facts to make business decisions — جمع الحقائق لاتخاذ قرارات تجارية`,
+   `Train workers — تدريب العمال`,
+   `Test materials only — اختبار المواد فقط`],1,
+  `Feasibility = جمع حقائق لاتخاذ قرارات تجارية.`),
+M(`In materials engineering, all parts fail by one or a combination of which three processes?`,
+  `في هندسة المواد، تفشل كل القطع بإحدى العمليات الثلاث التالية أو بمزيج منها:`,
+  [`Wear, corrosion, fracture — البلى، التآكل (الصدأ)، الكسر`,
+   `Heat, cold, light — الحرارة، البرودة، الضوء`,
+   `Noise, vibration, pressure — الضوضاء، الاهتزاز، الضغط`,
+   `Design, cost, time — التصميم، التكلفة، الوقت`],0,
+  `wear / corrosion / fracture: تتآكل، تصدأ، أو تنكسر.`),
+M(`In a failure analysis study, which step comes right after "Analyzing acquired data"?`,
+  `في دراسة تحليل الفشل، أي خطوة تأتي مباشرة بعد «تحليل البيانات المكتسبة»؟`,
+  [`Planning the investigation — تخطيط التحقيق`,
+   `Testing the hypothesis — اختبار الفرضية`,
+   `Acquiring background information — جمع المعلومات الخلفية`,
+   `Testing (chemical analysis) — الاختبار (التحليل الكيميائي)`],1,
+  `الترتيب: خلفية، تخطيط، اختبار، تحليل بيانات، اختبار الفرضية، تقرير نهائي.`),
+M(`The first step of an engineering project is to:`,
+  `الخطوة الأولى في المشروع الهندسي هي:`,
+  [`Write the report — كتابة التقرير`,
+   `Analyze data — تحليل البيانات`,
+   `State the problem (get all details) — تحديد المشكلة (الحصول على كل التفاصيل)`,
+   `Perform more studies — إجراء دراسات إضافية`],2,
+  `الخطوة 1: State the problem، والأخيرة (9): Write report.`),
+M(`The main reason for writing a project proposal is to:`,
+  `السبب الرئيسي لكتابة مقترح المشروع هو:`,
+  [`Get support and funding to proceed — الحصول على الدعم والتمويل للمتابعة`,
+   `Archive old data — أرشفة البيانات القديمة`,
+   `Replace the final report — استبدال التقرير النهائي`,
+   `Entertain management — تسلية الإدارة`],0,
+  `بعد وجود الفكرة تحتاج دعمًا وتمويلًا.`),
+M(`Which is the correct set of the three basic elements of a writing strategy?`,
+  `أي مجموعة تمثل العناصر الأساسية الثلاثة لاستراتيجية الكتابة؟`,
+  [`Readership, scope, purpose and objectives — القراء، النطاق، الغرض والأهداف`,
+   `Title, date, author — العنوان، التاريخ، المؤلف`,
+   `Abstract, body, references — الملخص، المتن، المراجع`,
+   `Cost, time, quality — التكلفة، الوقت، الجودة`],0,
+  `Readership = who / Scope = what / Purpose & objectives = why.`),
+M(`The summary (executive summary / abstract) represents about how much of the written report?`,
+  `الملخص (الملخص التنفيذي / abstract) يمثل تقريبًا كم من التقرير المكتوب؟`,
+  [`50% — 50٪`,`25% — 25٪`,`10% — 10٪`,`1% — 1٪`],2,
+  `الملخص حوالي 10٪ من التقرير.`),
+T(`The conclusion of a report should introduce new information.`,
+  `يجب أن تقدم خاتمة التقرير معلومات جديدة.`,false,
+  `خطأ. الخاتمة لا تضيف معلومات جديدة (Do not introduce new information).`),
+M(`Plagiarism is defined as:`,
+  `يُعرَّف الانتحال (Plagiarism) بأنه:`,
+  [`Citing sources in APA style — توثيق المصادر بنمط APA`,
+   `The act of claiming the words or ideas of another person as your own — نسب كلمات أو أفكار شخص آخر لنفسك`,
+   `Paraphrasing with a citation — إعادة الصياغة مع التوثيق`,
+   `Writing a long report — كتابة تقرير طويل`],1,
+  `الانتحال = نسب كلمات أو أفكار شخص آخر لنفسك.`),
+
+/* ===== Lecture 2 ===== */
+M(`Experts are the audience group who:`,
+  `الخبراء (Experts) هم فئة القراء الذين:`,
+  [`Build and repair equipment — يبنون المعدات ويصلحونها`,
+   `Know the theory and the product inside and out and have advanced degrees — يعرفون النظرية والمنتج بعمق ولديهم شهادات عليا`,
+   `Make business decisions — يتخذون القرارات التجارية`,
+   `Have the least technical knowledge — لديهم أقل معرفة تقنية`],1,
+  `Experts: دكاترة وباحثون يعرفون النظرية والمنتج.`),
+M(`Technicians are the audience group who:`,
+  `الفنيون (Technicians) هم فئة القراء الذين:`,
+  [`Build, operate, maintain, and repair what the experts design — يبنون ويشغلون ويصينون ويصلحون ما يصممه الخبراء`,
+   `Make political decisions — يتخذون قرارات سياسية`,
+   `Only read newspapers — يقرأون الصحف فقط`,
+   `Write patents only — يكتبون البراءات فقط`],0,
+  `Technicians = فنيون ينفذون ويشغلون ويصينون.`),
+M(`Which audience group has the least technical knowledge of all?`,
+  `أي فئة من القراء لديها أقل معرفة تقنية على الإطلاق؟`,
+  [`Experts — الخبراء`,
+   `Technicians — الفنيون`,
+   `Executives — المديرون التنفيذيون`,
+   `Non-specialists — غير المتخصصين`],3,
+  `Non-specialists = غير المتخصصين.`),
+T(`A good report satisfies the needs and demands of the audience.`,
+  `التقرير الجيد يلبي احتياجات القراء ومتطلباتهم.`,true,`صح.`),
+M(`If a report is intended for a countless and varied audience, it should be written so that:`,
+  `إذا كان التقرير موجهًا لجمهور كبير ومتنوع، فيجب أن يُكتب بحيث:`,
+  [`Only experts are satisfied — يُرضي الخبراء فقط`,
+   `No area is ignored and it satisfies them all — لا يُهمل أي مجال ويُرضي الجميع`,
+   `Only management is addressed — يخاطب الإدارة فقط`,
+   `It is as short as possible — يكون أقصر ما يمكن`],1,
+  `يُكتب بحيث لا يُهمل أي مجال ويُرضي الجميع.`),
+M(`Writing is hierarchical when it is arranged:`,
+  `تكون الكتابة هرمية (hierarchical) عندما تُرتَّب:`,
+  [`Randomly — عشوائيًا`,
+   `From abstract (high level) to concrete (low level) — من المجرد (مستوى عالٍ) إلى الملموس (مستوى منخفض)`,
+   `Only in tables — في جداول فقط`,
+   `Only in bullet points — في نقاط فقط`],1,
+  `Cascade: من مستوى عالٍ مجرد إلى تفاصيل أدق.`),
+M(`It is uncommon to go further than which level of headings in most technical documentation?`,
+  `من غير الشائع تجاوز أي مستوى من العناوين في معظم الوثائق التقنية؟`,
+  [`Second — الثاني`,`Third — الثالث`,`Fourth — الرابع`,`Tenth — العاشر`],2,
+  `نادرًا ما يتجاوز المستند المستوى الرابع.`),
+M(`When writing for multiple audiences simultaneously, which tone should be adopted?`,
+  `عند الكتابة لعدة فئات من القراء في الوقت نفسه، أي نبرة يجب اعتمادها؟`,
+  [`The most informal tone — النبرة الأكثر غير رسمية`,
+   `The most formal tone — النبرة الأكثر رسمية`,
+   `A humorous tone — نبرة فكاهية`,
+   `No tone — بلا نبرة`],1,
+  `تُتبنى أكثر نبرة رسمية (مثال: incident report يُبنى كما تتطلب الجهات الحكومية).`),
+T(`Deciding on the audience early in the writing process reduces later rewriting effort.`,
+  `تحديد القراء مبكرًا في عملية الكتابة يقلل جهد إعادة الكتابة لاحقًا.`,true,`صح.`),
+M(`Compared to technical readers, nontechnical readers require:`,
+  `مقارنةً بالقراء التقنيين، يحتاج القراء غير التقنيين إلى:`,
+  [`Less explanation of introductory concepts — شرح أقل للمفاهيم التمهيدية`,
+   `More explanation of introductory concepts — شرح أكثر للمفاهيم التمهيدية`,
+   `No introduction — بلا مقدمة`,
+   `More equations — معادلات أكثر`],1,
+  `غير التقنيين يحتاجون شرحًا أكثر للمفاهيم التمهيدية، والتقنيون يريدون تفاصيل أكثر.`),
+M(`Conciseness means that:`,
+  `الإيجاز (Conciseness) يعني أن:`,
+  [`Sentences should contain no unnecessary words — الجمل لا تحتوي كلمات زائدة`,
+   `Writing should be as long as possible — الكتابة أطول ما يمكن`,
+   `Details should always be added — تُضاف التفاصيل دائمًا`,
+   `Hedging words should be used — تُستخدم كلمات التحفظ`],0,
+  `لا كلمات زائدة ولا جمل زائدة (مثل رسم بلا خطوط زائدة).`),
+T(`Using too many words makes writing appear sloppy and amateurish.`,
+  `استخدام كلمات كثيرة جدًا يجعل الكتابة تبدو مهملة وهاوية.`,true,`صح.`),
+M(`Precision in technical writing can be achieved by:`,
+  `يمكن تحقيق الدقة (Precision) في الكتابة التقنية عن طريق:`,
+  [`Using vague modifiers — استخدام صفات غامضة`,
+   `Using measurable quantities — استخدام كميات قابلة للقياس`,
+   `Using long sentences — استخدام جمل طويلة`,
+   `Using opinions — استخدام الآراء`],1,
+  `الدقة = كميات قابلة للقياس بدل كلمات غامضة.`),
+M(`Which of the following is a vague modifier that should be replaced by a measurement?`,
+  `أي مما يلي صفة غامضة يجب استبدالها بقياس؟`,
+  [`Less than one milliliter per day — أقل من مليلتر واحد يوميًا`,
+   `15 percent — 15 بالمئة`,
+   `Huge — ضخم`,
+   `Two kilograms — كيلوغرامان`],2,
+  `approximately / some / tiny / huge كلمات غامضة تُستبدل بأرقام.`),
+M(`Correctness means that the information is:`,
+  `الصحة (Correctness) تعني أن المعلومات:`,
+  [`Long and detailed — طويلة ومفصلة`,
+   `Grammatically and technically correct — صحيحة نحويًا وتقنيًا`,
+   `Written in first person — مكتوبة بضمير المتكلم`,
+   `Stored electronically — مخزنة إلكترونيًا`],1,
+  `Correctness = صحة نحوية وتقنية.`),
+M(`The sentence "The automobile weight shall be no greater than 200 kilograms" (when 2000 was intended) is an example of a problem in:`,
+  `الجملة «The automobile weight shall be no greater than 200 kilograms» (بينما المقصود 2000) مثال على مشكلة في:`,
+  [`Changeability — قابلية التغيير`,
+   `Correctness — الصحة`,
+   `Clarity only — الوضوح فقط`,
+   `Referencing — التوثيق`],1,
+  `خطأ تقني في الرقم، فهو Correctness.`),
+M(`Clarity (unambiguousness) means that a sentence can have:`,
+  `الوضوح (عدم الغموض) يعني أن الجملة يمكن أن يكون لها:`,
+  [`Only one interpretation — تفسير واحد فقط`,
+   `Many interpretations — تفسيرات كثيرة`,
+   `No interpretation — لا تفسير`,
+   `Two interpretations — تفسيران`],0,
+  `Clarity = تفسير واحد فقط.`),
+M(`What is the most powerful technique for reducing incompleteness?`,
+  `ما أقوى أسلوب لتقليل النقص (incompleteness)؟`,
+  [`Writing longer text — كتابة نص أطول`,
+   `Having as many persons as possible read the material — أن يقرأ المادة أكبر عدد ممكن من الأشخاص`,
+   `Using a spell checker — استخدام المدقق الإملائي`,
+   `Removing the references — حذف المراجع`],1,
+  `كلما قرأه أشخاص أكثر اكتُشف النقص.`),
+M(`Internal consistency means that:`,
+  `الاتساق الداخلي (Internal consistency) يعني أن:`,
+  [`The document agrees with all other documents — المستند يتفق مع كل المستندات الأخرى`,
+   `One part of the document does not contradict another part — لا يتناقض جزء من المستند مع جزء آخر`,
+   `The document is numbered — المستند مرقّم`,
+   `The document is short — المستند قصير`],1,
+  `Internal = لا تناقض داخل المستند، وExternal = اتفاق مع المستندات والمعايير الأخرى.`),
+M(`External consistency means that the document is:`,
+  `الاتساق الخارجي (External consistency) يعني أن المستند:`,
+  [`In agreement with all other applicable documents and standards — متفق مع كل المستندات والمعايير الأخرى المطبقة`,
+   `Free of contradictions inside itself — خالٍ من التناقضات داخله`,
+   `Easy to modify — سهل التعديل`,
+   `Written by experts — كتبه خبراء`],0,
+  `External = توافق مع المستندات والمعايير المطبقة.`),
+M(`A document is changeable if:`,
+  `يكون المستند قابلًا للتغيير (changeable) إذا:`,
+  [`It is hard to modify — كان يصعب تعديله`,
+   `Its structure readily yields to modification (numbered, stored electronically) — كانت بنيته تتقبل التعديل بسهولة (مرقّم ومخزّن إلكترونيًا)`,
+   `It has no references — لم يكن فيه مراجع`,
+   `It is printed only — كان مطبوعًا فقط`],1,
+  `Changeability = سهولة التعديل (ترقيم وتخزين إلكتروني).`),
+M(`For any technical writing, the best way to establish the 5 Cs is through:`,
+  `لأي كتابة تقنية، أفضل طريقة لتحقيق الـ 5 Cs هي من خلال:`,
+  [`Peer review — مراجعة الأقران`,
+   `Spell checker only — المدقق الإملائي فقط`,
+   `Writing more pages — كتابة صفحات أكثر`,
+   `Using bold text — استخدام الخط العريض`],0,
+  `Peer review هو الأفضل، والأدوات الآلية تساعد فقط.`),
+T(`Web-based references such as Wikipedia can be of dubious origin, so you should not use too many of them.`,
+  `المراجع المعتمدة على الويب مثل ويكيبيديا قد تكون مشكوكًا في مصدرها، لذلك لا ينبغي الإكثار منها.`,true,
+  `صح، والأفضل مواقع موثوقة (NASA، جامعات...).`),
+M(`References that are too old (more than ten years for rapidly changing technologies) are:`,
+  `المراجع القديمة جدًا (أكثر من عشر سنوات للتقنيات سريعة التغير) تُعد:`,
+  [`Preferred — مفضلة`,
+   `Inappropriate — غير مناسبة`,
+   `Required — مطلوبة`,
+   `Ignored by readers — يتجاهلها القراء`],1,
+  `المراجع القديمة جدًا غير مناسبة للتقنيات سريعة التغير.`),
+M(`In this course, the final report should be written in which referencing style?`,
+  `في هذه المادة، بأي نمط توثيق يجب كتابة التقرير النهائي؟`,
+  [`MLA — نمط MLA`,`IEEE — نمط IEEE`,`APA — نمط APA`,`AIP — نمط AIP`],2,
+  `المطلوب في المادة هو APA.`),
+
+/* ===== Lecture 3 ===== */
+M(`Which of the following is NOT an attribute of formal technical documents?`,
+  `أي مما يلي ليس من سمات المستندات التقنية الرسمية؟`,
+  [`Refer to work of others — تشير إلى أعمال الآخرين`,
+   `Are written with a specific format — تُكتب بتنسيق محدد`,
+   `Contain information of lesser long-term value — تحتوي معلومات ذات قيمة أقل على المدى الطويل`,
+   `Contain information with long-term value — تحتوي معلومات ذات قيمة طويلة المدى`],2,
+  `الرسمية لها ثلاث خصائص: تشير لأعمال الآخرين، تنسيق محدد، قيمة طويلة المدى. أما Informal فهي أقل أهمية وقيمة.`),
+T(`Informal documents are essentially documents of lesser importance, significance, or long-term value.`,
+  `المستندات غير الرسمية هي في الأساس مستندات أقل أهمية ودلالة وقيمة على المدى الطويل.`,true,`صح.`),
+M(`According to the document hierarchy in U.S. industry, which document is the MOST important?`,
+  `حسب هرم المستندات في الصناعة الأمريكية، أي مستند هو الأهم؟`,
+  [`E-mail — البريد الإلكتروني`,
+   `Letter — الخطاب`,
+   `Informal report — تقرير غير رسمي`,
+   `Patent — براءة اختراع`],3,
+  `الأهم ← الأقل: Patent ← Paper ← Formal Report ← Informal Report ← Technical Memorandum ← Letter ← E-mail.`),
+T(`In an industrial organization, the report hierarchy probably correlates with the importance of the work and the value of passing the information to others.`,
+  `في المنظمة الصناعية، يرتبط هرم التقارير غالبًا بأهمية العمل وقيمة نقل المعلومات للآخرين.`,true,
+  `صح. وهذا سبب ترتيب Patent في القمة وE-mail في القاع.`),
+M(`A trip report is a good example of:`,
+  `تقرير الرحلة مثال جيد على:`,
+  [`A patent — براءة اختراع`,
+   `A technical memorandum — مذكرة تقنية`,
+   `A formal technical report — تقرير تقني رسمي`,
+   `A published paper — ورقة بحثية منشورة`],1,
+  `Technical memorandum (رسائل أو بريد إلكتروني): مهام كتابة لا تناسب التقرير الرسمي أو غير الرسمي.`),
+T(`The main difference between a formal and an informal report is that informal reports usually do not need an abstract or references.`,
+  `الفرق الرئيسي بين التقرير الرسمي وغير الرسمي أن التقارير غير الرسمية عادةً لا تحتاج إلى ملخص أو مراجع.`,true,
+  `صح، لأنها عادةً قصيرة (too short to require them).`),
+M(`The informal report has three sections:`,
+  `التقرير غير الرسمي له ثلاثة أقسام:`,
+  [`Abstract, body, references — الملخص، المتن، المراجع`,
+   `Title, date, author — العنوان، التاريخ، المؤلف`,
+   `Problem, investigation, summary — المشكلة، التحقيق، الملخص`,
+   `Purpose, scope, budget — الغرض، النطاق، الميزانية`],2,
+  `Introduction (problem) / Body (investigation) / Closure (summary: conclusions + recommendations).`),
+M(`Benchmarking refers to:`,
+  `المقارنة المرجعية (Benchmarking) تشير إلى:`,
+  [`A comparison of competing methods or alternative operations — مقارنة بين الطرق المتنافسة أو العمليات البديلة`,
+   `Writing a final report — كتابة تقرير نهائي`,
+   `Filing a patent — تسجيل براءة اختراع`,
+   `Reviewing grammar — مراجعة القواعد`],0,
+  `تقارن ما تفعله بما تفعله شركات أخرى، وإذا كانوا أفضل فأنت تخسر ولازم تتخذ إجراءً.`),
+T(`Production personnel include research scientists, engineers, and testing and sales personnel.`,
+  `يشمل موظفو الإنتاج (Production personnel) العلماء الباحثين والمهندسين وموظفي الاختبار والمبيعات.`,false,
+  `خطأ. هؤلاء هم Support personnel. أما Production فهم مدراء التصنيع، المجمّعون، الميكنيون...`),
+M(`The purpose of a letter is usually to:`,
+  `الغرض من الخطاب (Letter) عادةً هو:`,
+  [`Entertain the reader — تسلية القارئ`,
+   `Archive information for decades — أرشفة المعلومات لعقود`,
+   `Evoke action from an individual or organization — إثارة إجراء من فرد أو منظمة`,
+   `Establish intellectual property — إثبات الملكية الفكرية`],2,
+  `Action Letters: inquiries وcomplaints وsuggestions وsales. أقسامها: salutation, introduction, body, closure.`),
+T(`Inquiry letters seek redress of a complaint, while complaint letters usually ask for information.`,
+  `خطابات الاستفسار تطلب معالجة شكوى، بينما خطابات الشكوى تطلب عادةً معلومات.`,false,
+  `خطأ (معكوسة). Inquiry = تطلب معلومات / Complaint = تطلب معالجة الشكوى (redress).`),
+M(`A formal technical report is described as:`,
+  `يوصف التقرير التقني الرسمي بأنه:`,
+  [`A short, temporary note — ملاحظة قصيرة مؤقتة`,
+   `The gold standard of technical writing in industry — المعيار الذهبي للكتابة التقنية في الصناعة`,
+   `A letter to a customer — خطاب لعميل`,
+   `A meeting summary — ملخص اجتماع`],1,
+  `وهو archival document يحتوي معلومات ذات قيمة طويلة المدى، ويجب أن يكون كاملًا بحيث يمكن تكرار العمل من قبل آخرين.`),
+M(`An invention can be patented only if it meets which three requirements?`,
+  `لا يمكن تسجيل اختراع كبراءة إلا إذا استوفى أي ثلاثة شروط؟`,
+  [`New, useful, not obvious — جديد، مفيد، غير بديهي`,
+   `New, profitable, cheap — جديد، مربح، رخيص`,
+   `Old, useful, popular — قديم، مفيد، شائع`,
+   `New, large, complex — جديد، كبير، معقد`],0,
+  `It must be new / useful / not obvious.`),
+M(`Patents are described as the ultimate examples of:`,
+  `توصف البراءات بأنها المثال الأعلى على:`,
+  [`Brainstorming — العصف الذهني`,
+   `Informal writing — الكتابة غير الرسمية`,
+   `Transient documents — المستندات العابرة`,
+   `Archiving — الأرشفة`],3,
+  `لها أرقام فريدة، ومحفوظة دائمًا في البلد الذي صدرت فيه، ومتاحة للجميع.`),
+M(`An informational report is the presentation of data without any analysis, interpretation, or recommendations. Which is an example?`,
+  `التقرير المعلوماتي هو عرض للبيانات دون أي تحليل أو تفسير أو توصيات. أيٌّ مما يلي مثال عليه؟`,
+  [`Feasibility report — تقرير الجدوى`,
+   `Proposal — المقترح`,
+   `Market research report — تقرير أبحاث السوق`,
+   `Trip report / conference report — تقرير رحلة / تقرير مؤتمر`],3,
+  `Informational: conference, seminar, trip reports. Analytical: project, feasibility, market research reports.`),
+T(`A feasibility report is an informational report.`,
+  `تقرير الجدوى هو تقرير معلوماتي.`,false,
+  `خطأ. هو Analytical report: يحلل خطة ممكنة وينصح هل تُنفَّذ أم لا.`),
+M(`A proposal is a document that:`,
+  `المقترح (Proposal) هو مستند:`,
+  [`Argues for a particular course of action, often requesting funding or authorization — يدافع عن مسار عمل معين وغالبًا يطلب تمويلًا أو تفويضًا`,
+   `Only presents data without any argument — يعرض بيانات فقط دون أي حجة`,
+   `Lists the minutes of a meeting — يسرد محضر اجتماع`,
+   `Describes a past trip — يصف رحلة سابقة`],0,
+  `Analytical reports تعتمد الإقناع (persuasion)، ومنها Proposal وSubmission وInvestigative وFeasibility.`),
+M(`Brainstorming is sometimes called:`,
+  `يُطلق على العصف الذهني أحيانًا اسم:`,
+  [`Postwriting — ما بعد الكتابة`,
+   `Prewriting — ما قبل الكتابة`,
+   `Copyediting — التحرير اللغوي`,
+   `Publishing — النشر`],1,
+  `Brainstorming = prewriting: تسجيل أفكارك على الورق.`),
+T(`The drafting process is the hardest part of writing and usually takes the longest time.`,
+  `عملية كتابة المسودة هي أصعب جزء في الكتابة وتستغرق عادةً أطول وقت.`,true,
+  `صح. تكتب جملًا وفقرات كاملة حول العناوين، ثم تكتب الروابط بينها (connective tissue).`),
+T(`During drafting, you should worry mainly about perfect grammar and spelling.`,
+  `أثناء كتابة المسودة، ينبغي أن تنشغل أساسًا بالقواعد والإملاء المثاليين.`,false,
+  `خطأ. لا تهتم بالقواعد والإملاء بعد. اكتب بدون خوف (write, write, write) حتى يكتمل حوالي 90٪ ثم ابدأ المراجعة.`),
+M(`In the revising phase, at least how many people are required to review technical writing?`,
+  `في مرحلة المراجعة، كم شخصًا على الأقل يلزم لمراجعة الكتابة التقنية؟`,
+  [`One — واحد`,
+   `Five — خمسة`,
+   `Two: one technical and one nontechnical — اثنان: واحد تقني وواحد غير تقني`,
+   `None, the author alone — لا أحد، المؤلف وحده`],2,
+  `واحد ملم بالموضوع وواحد غير تقني لكنه كاتب ممتاز، وغير التقني غالبًا يكتشف أخطاء المنطق.`),
+T(`A revised manuscript will usually be much shorter than an early draft.`,
+  `المخطوطة بعد المراجعة تكون عادةً أقصر بكثير من المسودة الأولى.`,true,
+  `صح. وتتوقف عن المراجعة عندما تبدأ بتعديل ثم التراجع عنه، أو عند انتهاء الوقت.`),
+T(`During editing, the copyeditor will apply the 5 Cs discussed in Lecture 2.`,
+  `أثناء التحرير، سيطبق المحرر اللغوي الـ 5 Cs التي نوقشت في المحاضرة 2.`,true,
+  `صح. يكمل تفاصيل العرض والقواعد والتنسيق، ويكتشف تناقضات المنطق، ويتحقق من المراجع والاستشهادات.`),
+M(`'Publish' is a legal term meaning:`,
+  `'Publish' مصطلح قانوني يعني:`,
+  [`To delete the document — حذف المستند`,
+   `To start brainstorming — بدء العصف الذهني`,
+   `To correct grammar — تصحيح القواعد`,
+   `To make the document available to the public — إتاحة المستند للجمهور`],3,
+  `غير رسميًا: تلتزم بنسخة نهائية وتوزعها أو تضعها في أرشيف. وللطالب: تسليم عملك للأستاذ.`),
+M(`Which of the following lists the writing stages in the correct order?`,
+  `أي قائمة مما يلي تُرتِّب مراحل الكتابة ترتيبًا صحيحًا؟`,
+  [`Drafting → Brainstorming → Editing → Revising → Publishing — المسودة ← العصف الذهني ← التدقيق ← المراجعة ← النشر`,
+   `Brainstorming → Revising → Drafting → Editing → Publishing — العصف الذهني ← المراجعة ← المسودة ← التدقيق ← النشر`,
+   `Publishing → Drafting → Revising → Brainstorming → Editing — النشر ← المسودة ← المراجعة ← العصف الذهني ← التدقيق`,
+   `Brainstorming → Drafting → Revising → Editing → Publishing — العصف الذهني ← المسودة ← المراجعة ← التدقيق ← النشر`],3,
+  `الترتيب: أفكار ← مسودة ← تحسين ← تدقيق ← نشر (ومعها Meeting Deadlines كالتزام طوال المسار).`),
+
+/* ===== Extra ===== */
+M(`'Say what you want to say and get out!' describes which attribute?`,
+  `عبارة «قل ما تريد قوله ثم انصرف!» تصف أي سمة؟`,
+  [`Archival — أرشيفية`,
+   `Concise — موجزة`,
+   `Impersonal — غير شخصية`,
+   `Directed — موجَّهة`],1,
+  `Be concise: بدون جمل متشعبة أو كلمات زائدة. (الشابتر 1)`),
+M(`In a formal technical report, which section answers 'what it means'?`,
+  `في التقرير التقني الرسمي، أي قسم يجيب عن «ماذا يعني ذلك؟»`,
+  [`Introduction — المقدمة`,
+   `Procedure — الإجراءات`,
+   `Results — النتائج`,
+   `Discussion — المناقشة`],3,
+  `Introduction: why / Procedure: what you did / Results: what happened / Discussion: what it means / Conclusions: what was learned / Recommendations: what to do next.`),
+M(`What is the first step in an engineering project (solving a problem)?`,
+  `ما الخطوة الأولى في المشروع الهندسي (حل مشكلة)؟`,
+  [`Write the report — كتابة التقرير`,
+   `State the problem (get all details) — تحديد المشكلة (الحصول على كل التفاصيل)`,
+   `Perform more studies — إجراء دراسات إضافية`,
+   `Analyze data — تحليل البيانات`],1,
+  `الخطوة 1: State the problem. وآخر خطوة (9): Write report. (الشابتر 1)`),
+M(`In the lean, mean industries of the 1990s, mechanisms were researched only when they had:`,
+  `في صناعات التسعينيات المقتصدة، كانت الآليات تُبحث فقط عندما يكون لها:`,
+  [`Artistic value — قيمة فنية`,
+   `Personal interest — اهتمام شخصي`,
+   `Economic significance — أهمية اقتصادية`,
+   `Political value — قيمة سياسية`],2,
+  `لا أحد يبحث آلية دون أهمية اقتصادية (أرباح أو منتجات جديدة). (الشابتر 1)`),
+M(`In a writing strategy, the 'purpose and objectives' answer which question?`,
+  `في استراتيجية الكتابة، «الغرض والأهداف» تجيب عن أي سؤال؟`,
+  [`Who — من`,`What — ماذا`,`Why — لماذا`,`Where — أين`],2,
+  `Reader = Who / Scope = What / Purpose & Objective = Why (نيتك من الكتابة). (الشابتر 1)`),
+M(`A website whose address ends with '.edu' usually belongs to:`,
+  `الموقع الذي ينتهي عنوانه بـ '.edu' يعود عادةً إلى:`,
+  [`A commercial enterprise — مؤسسة تجارية`,
+   `A government agency — جهة حكومية`,
+   `A not-for-profit organization — منظمة غير ربحية`,
+   `An educational institution — مؤسسة تعليمية`],3,
+  `.org غير ربحية / .com تجارية / .edu تعليمية / .gov حكومية. (الشابتر 1)`),
+M(`Stitching together parts of different sources to create your text is called:`,
+  `تجميع أجزاء من مصادر مختلفة لإنشاء نصك يسمى:`,
+  [`Global plagiarism — انتحال شامل`,
+   `Patchwork plagiarism — انتحال ترقيعي`,
+   `Verbatim plagiarism — انتحال حرفي`,
+   `Self-plagiarism — انتحال ذاتي`],1,
+  `Patchwork = ترقيع، مثل قطع القماش المخيطة معًا. Global = نص كامل، Verbatim = نسخ حرفي. (الشابتر 1)`),
+T(`Plagiarism happens only when it is done intentionally.`,
+  `الانتحال يحدث فقط عندما يكون متعمدًا.`,false,
+  `خطأ. يوجد Intentional وUnintentional (مثل نسيان التوثيق أو إعادة الصياغة بدون ذكر المصدر). (الشابتر 1)`),
+M(`APA stands for:`,
+  `اختصار APA يعني:`,
+  [`American Poetry Association — الجمعية الأمريكية للشعر`,
+   `Applied Physics Academy — أكاديمية الفيزياء التطبيقية`,
+   `American Psychological Association — الجمعية الأمريكية لعلم النفس`,
+   `Association of Professional Authors — جمعية المؤلفين المحترفين`],2,
+  `MLA = Modern Language Association / CMS = Chicago Manual Style. (الشابتر 1)`),
+M(`Executives are the audience group who:`,
+  `المديرون التنفيذيون (Executives) هم فئة القراء الذين:`,
+  [`Build, operate, maintain, and repair the equipment — يبنون المعدات ويشغلونها ويصينونها ويصلحونها`,
+   `Make business, economic, administrative, legal, governmental, and political decisions — يتخذون القرارات التجارية والاقتصادية والإدارية والقانونية والحكومية والسياسية`,
+   `Know the theory and the product inside and out — يعرفون النظرية والمنتج بعمق`,
+   `Have the least technical knowledge of all — لديهم أقل معرفة تقنية على الإطلاق`],1,
+  `Executives = يقررون (Make decisions). الخيار (a) هم Technicians، و(c) Experts، و(d) Non-specialists. (الشابتر 2)`),
+M(`According to Table 2, the imprecise word 'Sometimes' can be replaced by which range?`,
+  `حسب الجدول 2، يمكن استبدال الكلمة غير الدقيقة 'Sometimes' بأي نطاق؟`,
+  [`99%–75% — 99٪–75٪`,`75%–50% — 75٪–50٪`,`50%–25% — 50٪–25٪`,`25%–1% — 25٪–1٪`],2,
+  `Always 100% / Frequently 99–75% / Often 75–50% / Sometimes 50–25% / Rarely 25–1% / Never 0%. (الشابتر 2)`),
+M(`Which question helps you detect ambiguity (lack of clarity) in a sentence?`,
+  `أي سؤال يساعدك على اكتشاف الغموض (قلة الوضوح) في جملة ما؟`,
+  [`'How do I test this?' — «كيف أختبر هذا؟»`,
+   `'Who wrote this?' — «من كتب هذا؟»`,
+   `'How long is this?' — «كم طول هذا؟»`,
+   `'Where is it stored?' — «أين يُخزَّن؟»`],0,
+  `إذا ما قدرت تختبر الجملة بوضوح فهي غامضة. (الشابتر 2 - Clarity)`),
+M(`Which of the following sentences is the most precise?`,
+  `أي الجمل التالية هي الأكثر دقة؟`,
+  [`Leakage should be minimal. — يجب أن يكون التسرب في حده الأدنى.`,
+   `There should be hardly any leakage. — يجب ألا يوجد تسرب تقريبًا.`,
+   `Leakage should be less than one milliliter per day. — يجب أن يكون التسرب أقل من مليلتر واحد يوميًا.`,
+   `Leakage should be as small as possible. — يجب أن يكون التسرب أصغر ما يمكن.`],2,
+  `الدقة = رقم وقياس بدل كلمات غامضة (small, hardly, minimal). (الشابتر 2)`),
+M(`According to the readership table, a Ph.D. thesis is written at the level of:`,
+  `حسب جدول القراء، تُكتب أطروحة الدكتوراه بمستوى:`,
+  [`Lowest reader level — أدنى مستوى قراء`,
+   `High school graduate — خريج الثانوية`,
+   `Technical journal — مجلة تقنية`,
+   `General newspaper — صحيفة عامة`],2,
+  `Ph.D. thesis ← Technical journal وResearch proposal، بينما Technical report ← Lowest reader level. (الشابتر 2)`),
+T(`Non-specialists never have to make important decisions based on reports.`,
+  `غير المتخصصين لا يضطرون أبدًا لاتخاذ قرارات مهمة بناءً على التقارير.`,false,
+  `خطأ (كلمة never فخ). في الشريحة: They sometimes have to take decisions on the basis of certain reports. (الشابتر 2)`),
+T(`The list of references reflects how familiar you are with the subject.`,
+  `قائمة المراجع تعكس مدى إلمامك بالموضوع.`,true,
+  `صح، فاختر مزيجًا مناسبًا ومصادر حديثة وموثوقة. (الشابتر 2)`),
+T(`Lecture 2 mentions only one referencing style: APA.`,
+  `المحاضرة 2 تذكر نمط توثيق واحدًا فقط: APA.`,false,
+  `خطأ (كلمة only فخ). المذكور: APA وMLA وAIP وIEEE، والمطلوب في المادة هو APA. (الشابتر 2)`),
+M(`Who are the usual readers of a patent or a published paper?`,
+  `من هم القراء المعتادون للبراءة أو الورقة المنشورة؟`,
+  [`Affected parties — الأطراف المتأثرة`,
+   `Team members — أعضاء الفريق`,
+   `Worldwide public — الجمهور العالمي`,
+   `Clients and management only — العملاء والإدارة فقط`],2,
+  `الأهم ← قراء أكثر. Paper/Patent = الجمهور عالميًا. (الشابتر 3 - هرم المستندات)`),
+M(`Informal reports, technical memoranda, and letters are usually read by:`,
+  `التقارير غير الرسمية والمذكرات التقنية والخطابات يقرؤها عادةً:`,
+  [`The worldwide public — الجمهور العالمي`,
+   `Affected parties — الأطراف المتأثرة`,
+   `The company library only — مكتبة الشركة فقط`,
+   `Government regulators — الجهات التنظيمية الحكومية`],1,
+  `Affected parties = من يتأثرون بالموضوع فقط. (الشابتر 3)`),
+M(`Who are the usual readers of a formal technical report?`,
+  `من هم القراء المعتادون للتقرير التقني الرسمي؟`,
+  [`The worldwide public — الجمهور العالمي`,
+   `Team members only — أعضاء الفريق فقط`,
+   `Clients, management, and the company library — العملاء والإدارة ومكتبة الشركة`,
+   `Affected parties only — الأطراف المتأثرة فقط`],2,
+  `Formal report ← Clients, management, company library. (الشابتر 3)`),
+T(`An informal report is typically used for the results of a minor project, while a formal report is used for a significant project.`,
+  `يُستخدم التقرير غير الرسمي عادةً لنتائج مشروع صغير، بينما يُستخدم التقرير الرسمي لمشروع مهم.`,true,
+  `صح. Minor = صغير / ثانوي، وSignificant = مهم. (الشابتر 3)`),
+T(`A letter typically includes a salutation, an introduction, a body, and a closure.`,
+  `يتضمن الخطاب عادةً تحية، ومقدمة، ومتنًا، وخاتمة.`,true,
+  `صح. وهدف الخطاب إثارة إجراء (action) من شخص أو منظمة. (الشابتر 3)`),
+T(`Analytical reports present data without any analysis or recommendations.`,
+  `التقارير التحليلية تعرض البيانات دون أي تحليل أو توصيات.`,false,
+  `خطأ. هذا وصف التقرير المعلوماتي (Informational). التحليلي يحلل ويقنع ويوصي (proposal, feasibility). (الشابتر 3)`),
+T(`Patents are archived permanently and are available to the public.`,
+  `البراءات تُؤرشف بشكل دائم وهي متاحة للجمهور.`,true,
+  `صح. لها أرقام فريدة وتُحفظ دائمًا في البلد الذي صدرت فيه. (الشابتر 3)`),
+T(`A revised manuscript is usually longer than the early draft.`,
+  `المخطوطة بعد المراجعة تكون عادةً أطول من المسودة الأولى.`,false,
+  `خطأ. بعد المراجعة تكون أقصر بكثير (تُحذف الحشو). (الشابتر 3)`)
+];
+
+/* ---------- State ---------- */
+const $=id=>document.getElementById(id);
+let list=[], idx=0, score=0, wrongs=[], locked=false;
+
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const show=id=>["start","quiz","result"].forEach(x=>$(x).classList.toggle("hide",x!==id));
+
+function prepare(src,shQ,shO){
+  let arr=src.map(q=>({...q}));
+  if(shO){
+    arr=arr.map(q=>{
+      if(q.tf) return q;
+      const order=shuffle(q.o.map((_,i)=>i));
+      return {...q,o:order.map(i=>q.o[i]),c:order.indexOf(q.c)};
+    });
+  }
+  return shQ?shuffle(arr):arr;
+}
+
+function begin(src){
+  list=src; idx=0; score=0; wrongs=[];
+  show("quiz"); render();
+}
+
+function render(){
+  locked=false;
+  const q=list[idx];
+  $("counter").textContent=`Question ${idx+1} / ${list.length} — السؤال ${idx+1} من ${list.length}`;
+  $("scoreLive").textContent=`Score — النتيجة: ${score}`;
+  $("prog").style.width=(idx/list.length*100)+"%";
+  $("qen").textContent=`${idx+1}. ${q.q}`;
+  $("qar").textContent=q.a;
+  $("feedback").innerHTML="";
+  $("nextBtn").classList.add("hide");
+  $("nextBtn").textContent=idx===list.length-1?"Finish — إنهاء":"Next — التالي";
+  const box=$("opts"); box.innerHTML="";
+  q.o.forEach((txt,i)=>{
+    const b=document.createElement("button");
+    b.className="opt";
+    const k=document.createElement("span"); k.className="k"; k.textContent=String.fromCharCode(65+i);
+    const t=document.createElement("span"); t.className="t"; t.textContent=txt;
+    b.append(k,t);
+    b.onclick=()=>answer(i);
+    box.appendChild(b);
+  });
+}
+
+function answer(i){
+  if(locked) return; locked=true;
+  const q=list[idx];
+  const btns=[...$("opts").children];
+  btns.forEach((b,j)=>{
+    b.disabled=true;
+    if(j===q.c) b.classList.add("correct");
+    else if(j===i) b.classList.add("wrong");
+  });
+  const ok=i===q.c;
+  if(ok) score++; else wrongs.push({q,picked:i});
+  $("scoreLive").textContent=`Score — النتيجة: ${score}`;
+  const f=$("feedback");
+  f.innerHTML="";
+  const v=document.createElement("div");
+  v.className="verdict "+(ok?"ok":"no");
+  v.textContent=ok?"✓ Correct — إجابة صحيحة":"✗ Incorrect — إجابة خاطئة";
+  const e=document.createElement("div");
+  e.className="exp";
+  e.innerHTML="<b>الشرح:</b>";
+  e.append(document.createTextNode(q.e));
+  f.append(v,e);
+  $("nextBtn").classList.remove("hide");
+  $("nextBtn").focus();
+}
+
+function next(){
+  if(idx<list.length-1){idx++;render();}
+  else finish();
+}
+
+function finish(){
+  $("prog").style.width="100%";
+  show("result");
+  const pct=Math.round(score/list.length*100);
+  $("finalScore").textContent=`${score} / ${list.length}  (${pct}%)`;
+  $("finalMsg").textContent=pct>=90?"ممتاز! — Excellent!":pct>=75?"جيد جدًا — Very good":pct>=50?"جيد، راجع الأخطاء — Fair, review your mistakes":"تحتاج مراجعة أكثر — Needs more review";
+  $("retryWrong").classList.toggle("hide",wrongs.length===0);
+  const r=$("review"); r.innerHTML="";
+  if(!wrongs.length){r.textContent="No mistakes — لا توجد أخطاء 🎉";return;}
+  wrongs.forEach(({q,picked})=>{
+    const d=document.createElement("div"); d.className="rev";
+    const en=document.createElement("div"); en.className="en"; en.textContent=q.q;
+    const a=document.createElement("div"); a.className="a"; a.textContent=q.a;
+    const y=document.createElement("div"); y.className="y"; y.textContent="✗ "+q.o[picked];
+    const c=document.createElement("div"); c.className="c"; c.textContent="✓ "+q.o[q.c];
+    const e=document.createElement("div"); e.className="ar"; e.textContent=q.e;
+    d.append(en,a,y,c,e); r.appendChild(d);
+  });
+}
+
+/* ---------- Events ---------- */
+$("startBtn").onclick=()=>{
+  const p=$("part").value;
+  let src=QUESTIONS;
+  if(p!=="all"){const s=(+p-1)*25; src=QUESTIONS.slice(s,s+25);}
+  begin(prepare(src,$("shQ").checked,$("shO").checked));
+};
+$("nextBtn").onclick=next;
+$("retryAll").onclick=()=>show("start");
+$("retryWrong").onclick=()=>begin(prepare(wrongs.map(w=>w.q),$("shQ").checked,$("shO").checked));
+document.addEventListener("keydown",e=>{
+  if($("quiz").classList.contains("hide")) return;
+  if(!locked && /^[1-4]$/.test(e.key)){const n=+e.key-1; if(n<list[idx].o.length) answer(n);}
+  else if(locked && e.key==="Enter") next();
+});
+</script>
+</body>
+</html>
